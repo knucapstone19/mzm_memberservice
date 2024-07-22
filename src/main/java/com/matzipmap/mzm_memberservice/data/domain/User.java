@@ -1,11 +1,19 @@
 package com.matzipmap.mzm_memberservice.data.domain;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 
+@Data
+@RequiredArgsConstructor
+@AllArgsConstructor
+@Builder
 @Entity(name = "user")
 @EntityListeners(AuditingEntityListener.class)
 public class User {

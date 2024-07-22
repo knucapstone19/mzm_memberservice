@@ -1,0 +1,104 @@
+package com.matzipmap.mzm_memberservice.service.impl;
+
+import com.matzipmap.mzm_memberservice.data.domain.User;
+import com.matzipmap.mzm_memberservice.data.dto.OAuth2UserInfo;
+import com.matzipmap.mzm_memberservice.data.dto.PrincipalDetails;
+import com.matzipmap.mzm_memberservice.data.enums.SocialType;
+import com.matzipmap.mzm_memberservice.repository.UserRepository;
+import com.matzipmap.mzm_memberservice.service.UserService;
+import io.jsonwebtoken.lang.Assert;
+import jakarta.security.auth.message.AuthException;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
+import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
+import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
+import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.stereotype.Service;
+
+import java.util.Map;
+import java.util.Optional;
+
+@Service
+@RequiredArgsConstructor
+@Slf4j
+public class UserServiceImpl extends DefaultOAuth2UserService implements UserService {
+
+    private final UserRepository userRepository;
+
+    @Override
+    public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
+        // 유저 정보 가져오기
+        Map<String, Object> oAuth2UserAttributes = super.loadUser(userRequest).getAttributes();
+
+        // registrationId 가져오기
+        String registrationId = userRequest.
+                getClientRegistration().getRegistrationId();
+
+        // userNameAttributeName 가져오기
+        String userNameAttributeName = userRequest.getClientRegistration()
+                .getProviderDetails()
+                .getUserInfoEndpoint()
+                .getUserNameAttributeName();
+
+        OAuth2UserInfo oAuth2UserInfo;
+        try {
+            oAuth2UserInfo = OAuth2UserInfo.of(registrationId, oAuth2UserAttributes);
+            log.info(oAuth2UserInfo.name());
+        } catch (AuthException e) {
+            throw new RuntimeException(e);
+        }
+
+        String socialCode = oAuth2UserAttributes.get(userNameAttributeName).toString();
+        Long socialType = SocialType.getValueByKey(registrationId);
+
+        // 유저 없으면 DB에 저장
+        User userFind = userRepository.getUserBySocialTypeAndSocialCode(
+                socialType,
+                socialCode
+        );
+        User retUser;
+        if(userFind == null) {
+            User user = User.builder()
+                    .name(oAuth2UserInfo.name())
+                    .profileUrl(oAuth2UserInfo.profile()) // TODO: Fix. Its null.
+                    .email(oAuth2UserInfo.email())
+                    .socialType(socialType)
+                    .socialCode(socialCode)
+                    .username(oAuth2UserInfo.name())
+                    .build();
+            User savedUser = userRepository.save(user);
+            log.info("SavedUserId: {}", savedUser.getUserId());
+            retUser = user;
+        } else {
+            retUser = userFind;
+        }
+        Assert.notNull(retUser);
+        PrincipalDetails details =  new PrincipalDetails(
+                retUser,
+                oAuth2UserAttributes,
+                userNameAttributeName
+        );
+        Assert.notNull(details);
+        return details;
+    }
+
+    @Override
+    public User getUserById(Long userId) {
+        Optional<User> byId = userRepository.findById(userId);
+        return byId.orElse(null);
+    }
+
+    @Override
+    public User getUserByEmail(String email) {
+        Assert.notNull(email);
+        return userRepository.getUserByEmail(email);
+    }
+
+    @Override
+    public User getUserBySocialTypeAndSocialCode(SocialType socialType, String socialCode) {
+        User user = getUserBySocialTypeAndSocialCode(socialType, socialCode);
+//        PrincipalDetails details = new PrincipalDetails(user, null, null);
+        return user;
+    }
+}
