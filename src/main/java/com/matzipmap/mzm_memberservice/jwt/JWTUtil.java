@@ -132,6 +132,7 @@ public class JWTUtil implements AuthenticationProvider {
     @Override
     public boolean supports(Class<?> authentication) {
         log.info("Authentication:: supports called");
+
         return false;
     }
 }
