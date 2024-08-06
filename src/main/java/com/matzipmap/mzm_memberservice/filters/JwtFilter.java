@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.StringUtils;
 
@@ -26,6 +27,7 @@ public class JwtFilter extends GenericFilter {
         if(StringUtils.hasText(jwtToken) && jwtUtil.validateToken(jwtToken)) {
             //토큰 값에서 Authentication 값으로 가공해서 반환 후 저장
             Authentication authentication = jwtUtil.getAuthentication(jwtToken);
+            SecurityContext context = SecurityContextHolder.getContext();
             SecurityContextHolder.getContext().setAuthentication(authentication);
             log.info("Security Context에 '{}' 인증 정보를 저장했습니다, uri: {}", authentication.getName(), requestURI);
         } else {

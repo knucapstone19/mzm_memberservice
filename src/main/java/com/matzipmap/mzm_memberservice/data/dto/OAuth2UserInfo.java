@@ -8,6 +8,7 @@ import java.util.Map;
 
 @Builder
 public record OAuth2UserInfo(
+        String socialCode, // TODO: Social 코드 추가하기
         String name,
         String email,
         String profile
@@ -15,6 +16,8 @@ public record OAuth2UserInfo(
     public static OAuth2UserInfo of(String registrationId, Map<String, Object> attributes) throws AuthException {
         return switch (registrationId) {
             case "kakao" -> ofKakao((Map<String, Object>) attributes.get("properties"));
+            case "naver" -> ofNaver((Map<String, Object>) attributes.get("response"));
+            case "google" -> ofGoogle(attributes);
             default -> throw new AuthException();
         };
     }
@@ -28,4 +31,19 @@ public record OAuth2UserInfo(
 
     }
 
+    private static OAuth2UserInfo ofNaver(Map<String, Object> attributes) {
+        return OAuth2UserInfo.builder()
+                .name((String) attributes.get("name"))
+                .email((String) attributes.get("email"))
+                .profile((String) attributes.get("profile_image"))
+                .build();
+    }
+
+    private static OAuth2UserInfo ofGoogle(Map<String, Object> attributes) {
+        return OAuth2UserInfo.builder()
+                .name((String) attributes.get("name"))
+                .email((String) attributes.get("email"))
+                .profile((String) attributes.get("picture"))
+                .build();
+    }
 }

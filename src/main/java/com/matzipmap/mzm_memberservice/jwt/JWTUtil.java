@@ -13,6 +13,7 @@ import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
@@ -117,8 +118,8 @@ public class JWTUtil implements AuthenticationProvider {
                 "username"
         );
         return new UsernamePasswordAuthenticationToken(
-                principalDetails.getUsername(),
-                principalDetails.getPassword(),
+                (OAuth2User)principalDetails,
+                token,
                 principalDetails.getAuthorities()
         );
     }

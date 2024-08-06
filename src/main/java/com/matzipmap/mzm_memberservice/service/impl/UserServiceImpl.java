@@ -10,6 +10,9 @@ import io.jsonwebtoken.lang.Assert;
 import jakarta.security.auth.message.AuthException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
@@ -49,7 +52,7 @@ public class UserServiceImpl extends DefaultOAuth2UserService implements UserSer
             throw new RuntimeException(e);
         }
 
-        String socialCode = oAuth2UserAttributes.get(userNameAttributeName).toString();
+        String socialCode = getSocialCode(registrationId, oAuth2UserAttributes, userNameAttributeName);
         Long socialType = SocialType.getValueByKey(registrationId);
 
         // 유저 없으면 DB에 저장
@@ -61,7 +64,7 @@ public class UserServiceImpl extends DefaultOAuth2UserService implements UserSer
         if(userFind == null) {
             User user = User.builder()
                     .name(oAuth2UserInfo.name())
-                    .profileUrl(oAuth2UserInfo.profile()) // TODO: Fix. Its null.
+                    .profileUrl(oAuth2UserInfo.profile())
                     .email(oAuth2UserInfo.email())
                     .socialType(socialType)
                     .socialCode(socialCode)
@@ -101,4 +104,23 @@ public class UserServiceImpl extends DefaultOAuth2UserService implements UserSer
 //        PrincipalDetails details = new PrincipalDetails(user, null, null);
         return user;
     }
+
+    private String getSocialCode(String type, Map<String, Object> attributes, String attributeName) {
+        if(type.equals("naver")) {
+            return ((Map)attributes.get(attributeName)).get("id").toString();
+        }
+        return attributes.get(attributeName).toString();
+    }
+
+//    @Override
+//    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+//        // username: "{socialType} {socialCode}"
+////        String[] usernames = username.split("\\s+");
+//        User user = getUserById(Long.parseLong(username));
+//        PrincipalDetails details = new PrincipalDetails(
+//                user,
+//
+//        )
+//        return null;
+//    }
 }

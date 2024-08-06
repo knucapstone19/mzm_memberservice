@@ -17,6 +17,10 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+
+import java.util.Collections;
 
 @Configuration
 @RequiredArgsConstructor
@@ -36,7 +40,7 @@ public class SpringConfig {
     ) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable) // csrf 비활성화 -> cookie 사용 X면 꺼도 됨. cookie를 사용할 경우 httpOnly(XSS 방어), sameSite(CSRF 방어)로 방어해야함.
-                .cors(AbstractHttpConfigurer::disable) // 프론트와 연결시 설정 필요
+                .cors(configurer -> configurer.configurationSource(corsConfigurationSource())) // 프론트와 연결시 설정 필요
                 .httpBasic(AbstractHttpConfigurer::disable) // 기본 인증 로그인 비활성화
                 .formLogin(AbstractHttpConfigurer::disable) // 기본 login form 비활성화
                 .logout(AbstractHttpConfigurer::disable) // 기본 logout 비활성화
@@ -65,5 +69,17 @@ public class SpringConfig {
                                     )
                 );
         return http.build();
+    }
+
+    private CorsConfigurationSource corsConfigurationSource() {
+        // https://velog.io/@stringbuckwheat/Spring-Boot-3.0-%EC%9D%B4%EC%83%81%EC%97%90%EC%84%9C-CORS-%EB%AC%B8%EC%A0%9C-%ED%95%B4%EA%B2%B0%ED%95%98%EA%B8%B0
+        return request -> {
+            CorsConfiguration config = new CorsConfiguration();
+            config.setAllowedHeaders(Collections.singletonList("*"));
+            config.setAllowedMethods(Collections.singletonList("*"));
+            config.setAllowedOriginPatterns(Collections.singletonList("http://localhost:5173")); // ⭐️ 허용할 origin
+            config.setAllowCredentials(true);
+            return config;
+        };
     }
 }

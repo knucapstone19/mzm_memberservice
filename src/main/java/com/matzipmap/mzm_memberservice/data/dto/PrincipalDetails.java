@@ -35,6 +35,10 @@ public record PrincipalDetails(
         return attributes;
     }
 
+    public String getSocialCode() {
+        return this.user.getSocialCode();
+    }
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return Collections.singletonList(
