@@ -41,7 +41,7 @@ public class User {
     @Column(name = "name", length = 45)
     private String name;
 
-    @Column(name = "username", length = 45)
+    @Column(name = "username", length = 45, unique = true)
     private String username;
 
     @CreatedDate
