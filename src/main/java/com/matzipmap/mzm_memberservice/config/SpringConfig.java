@@ -49,7 +49,7 @@ public class SpringConfig {
                 .authorizeHttpRequests(authorizeRequest ->
                     authorizeRequest
                             .requestMatchers(
-                                    AntPathRequestMatcher.antMatcher("/user/**")
+                                    AntPathRequestMatcher.antMatcher("/user")
                             )
                             .authenticated()
                             .requestMatchers(

@@ -105,6 +105,18 @@ public class UserServiceImpl extends DefaultOAuth2UserService implements UserSer
         return user;
     }
 
+    /**
+     * 닉네임으로 유저 정보를 가져옵니다.
+     * @param username 사용자 닉네임
+     * @return
+     */
+    @Override
+    public Boolean duplicateUsername(String username) {
+        User user = userRepository.getUserByUsername(username).orElse(null);
+        Boolean isDuplicated = (user != null);
+        return isDuplicated;
+    }
+
     private String getSocialCode(String type, Map<String, Object> attributes, String attributeName) {
         if(type.equals("naver")) {
             return ((Map)attributes.get(attributeName)).get("id").toString();
