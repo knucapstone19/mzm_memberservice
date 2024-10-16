@@ -1,5 +1,6 @@
 package com.matzipmap.mzm_memberservice.data.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -23,5 +24,6 @@ public class School {
     private Float lat;
 
     @OneToMany(mappedBy = "school")
+    @JsonIgnore
     private List<User> users;
 }
