@@ -18,4 +18,5 @@ public interface UserService {
     Boolean duplicateUsername(String username);
 
     boolean patchUser(OAuth2User principal, UserDto.PatchDto dto);
+    boolean deleteUser(OAuth2User principal);
 }

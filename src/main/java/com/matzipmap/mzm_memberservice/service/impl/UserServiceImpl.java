@@ -150,6 +150,15 @@ public class UserServiceImpl extends DefaultOAuth2UserService implements UserSer
         return true;
     }
 
+    @Override
+    public boolean deleteUser(OAuth2User principal) {
+        PrincipalDetails details = (PrincipalDetails) principal;
+        User user = details.user();
+        Long userId = user.getUserId();
+        userRepository.deleteById(userId);
+        return true;
+    }
+
     private String getSocialCode(String type, Map<String, Object> attributes, String attributeName) {
         if(type.equals("naver")) {
             return ((Map)attributes.get(attributeName)).get("id").toString();
