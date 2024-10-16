@@ -1,7 +1,9 @@
 package com.matzipmap.mzm_memberservice.service;
 
 import com.matzipmap.mzm_memberservice.data.domain.User;
+import com.matzipmap.mzm_memberservice.data.dto.UserDto;
 import com.matzipmap.mzm_memberservice.data.enums.SocialType;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 
 public interface UserService {
     User getUserById(Long userId);
@@ -14,4 +16,6 @@ public interface UserService {
      * @return isDuplicated
      */
     Boolean duplicateUsername(String username);
+
+    boolean patchUser(OAuth2User principal, UserDto.PatchDto dto);
 }

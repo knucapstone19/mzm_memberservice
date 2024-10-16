@@ -1,18 +1,18 @@
 package com.matzipmap.mzm_memberservice.service.impl;
 
+import com.matzipmap.mzm_memberservice.data.domain.School;
 import com.matzipmap.mzm_memberservice.data.domain.User;
 import com.matzipmap.mzm_memberservice.data.dto.OAuth2UserInfo;
 import com.matzipmap.mzm_memberservice.data.dto.PrincipalDetails;
+import com.matzipmap.mzm_memberservice.data.dto.UserDto;
 import com.matzipmap.mzm_memberservice.data.enums.SocialType;
+import com.matzipmap.mzm_memberservice.repository.SchoolRepository;
 import com.matzipmap.mzm_memberservice.repository.UserRepository;
 import com.matzipmap.mzm_memberservice.service.UserService;
 import io.jsonwebtoken.lang.Assert;
 import jakarta.security.auth.message.AuthException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
@@ -28,6 +28,7 @@ import java.util.Optional;
 public class UserServiceImpl extends DefaultOAuth2UserService implements UserService {
 
     private final UserRepository userRepository;
+    private final SchoolRepository schoolRepository;
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
@@ -115,6 +116,38 @@ public class UserServiceImpl extends DefaultOAuth2UserService implements UserSer
         User user = userRepository.getUserByUsername(username).orElse(null);
         Boolean isDuplicated = (user != null);
         return isDuplicated;
+    }
+
+    @Override
+    public boolean patchUser(OAuth2User principal, UserDto.PatchDto dto) {
+        PrincipalDetails details = (PrincipalDetails) principal;
+        User user = details.user();
+        Long userId = user.getUserId();
+        if(dto.getUsername() != null) {
+            Optional<User> otherUser = userRepository.getUserByUsername(dto.getUsername());
+            if(otherUser.isPresent()) {
+                throw new RuntimeException("Username already exists");
+            } else {
+                Optional<User> byId = userRepository.findById(userId);
+                if(byId.isPresent()) {
+                    User changedUser = byId.get();
+                    changedUser.setUsername(dto.getUsername());
+                    userRepository.save(changedUser);
+                }
+            }
+        }
+
+        if(dto.getSchoolId() != null) {
+            Optional<User> byId = userRepository.findById(userId);
+            if(byId.isPresent()) {
+                User changedUser = byId.get();
+                Optional<School> schoolById = schoolRepository.findById(dto.getSchoolId());
+                schoolById.ifPresent(changedUser::setSchool);
+                log.info("!!!: {}", schoolById.get().getSchoolName());
+                userRepository.save(changedUser);
+            }
+        }
+        return true;
     }
 
     private String getSocialCode(String type, Map<String, Object> attributes, String attributeName) {
