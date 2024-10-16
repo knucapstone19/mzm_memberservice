@@ -34,4 +34,10 @@ public class UserController {
         boolean b = userService.patchUser(principal, dto);
         return ResponseEntity.ok(b); // TODO:
     }
+
+    @DeleteMapping
+    public ResponseEntity<Object> deleteUser(@AuthenticationPrincipal OAuth2User principal) {
+        userService.deleteUser(principal);
+        return ResponseEntity.ok(true);
+    }
 }
