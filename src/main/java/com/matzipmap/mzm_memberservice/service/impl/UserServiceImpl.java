@@ -1,5 +1,6 @@
 package com.matzipmap.mzm_memberservice.service.impl;
 
+import com.matzipmap.mzm_memberservice.config.ImageConfig;
 import com.matzipmap.mzm_memberservice.data.domain.School;
 import com.matzipmap.mzm_memberservice.data.domain.User;
 import com.matzipmap.mzm_memberservice.data.dto.OAuth2UserInfo;
@@ -9,6 +10,8 @@ import com.matzipmap.mzm_memberservice.data.enums.SocialType;
 import com.matzipmap.mzm_memberservice.repository.SchoolRepository;
 import com.matzipmap.mzm_memberservice.repository.UserRepository;
 import com.matzipmap.mzm_memberservice.service.UserService;
+import com.matzipmap.mzm_memberservice.utils.FileGenerator;
+import com.matzipmap.mzm_memberservice.utils.FileGeneratorUtil;
 import io.jsonwebtoken.lang.Assert;
 import jakarta.security.auth.message.AuthException;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +21,12 @@ import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Map;
 import java.util.Optional;
 
@@ -29,6 +37,9 @@ public class UserServiceImpl extends DefaultOAuth2UserService implements UserSer
 
     private final UserRepository userRepository;
     private final SchoolRepository schoolRepository;
+    private final FileGenerator fileGenerator;
+    private final FileGeneratorUtil fileGeneratorUtil;
+    private final ImageConfig imageConfig;
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
@@ -148,6 +159,40 @@ public class UserServiceImpl extends DefaultOAuth2UserService implements UserSer
             }
         }
         return true;
+    }
+
+    @Override
+    public String patchImage(OAuth2User principal, MultipartFile file) {
+        PrincipalDetails details = (PrincipalDetails) principal;
+        User user = details.user();
+        Long userId = user.getUserId();
+        validateFile(file);
+        String fileName = fileGeneratorUtil.generateFileName(file.getOriginalFilename());
+        Path absolutePath = fileGeneratorUtil.generateAbsolutePath(fileName);
+
+        // 파일 path 저장하고 유저 정보 수정
+
+        User userFound = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("Not found user"));
+        userFound.setProfileUrl(fileName);
+        userRepository.save(userFound);
+
+        fileGenerator.save(file, absolutePath);
+//        return fileGeneratorUtil.generateFileUrl(imageConfig.getRootLocation(), fileName);
+        return fileName;
+    }
+
+    @Override
+    public byte[] getImage(String fileName) {
+        try {
+            Path filePath = Paths.get(imageConfig.getRootLocation(), fileName);
+            return Files.readAllBytes(filePath);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void validateFile(MultipartFile file) {
+        if(file.isEmpty()) throw new RuntimeException("File doesn't exist");
     }
 
     @Override
