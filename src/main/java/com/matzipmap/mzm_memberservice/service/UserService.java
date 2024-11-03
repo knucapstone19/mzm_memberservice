@@ -4,6 +4,7 @@ import com.matzipmap.mzm_memberservice.data.domain.User;
 import com.matzipmap.mzm_memberservice.data.dto.UserDto;
 import com.matzipmap.mzm_memberservice.data.enums.SocialType;
 import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.web.multipart.MultipartFile;
 
 public interface UserService {
     User getUserById(Long userId);
@@ -18,5 +19,7 @@ public interface UserService {
     Boolean duplicateUsername(String username);
 
     boolean patchUser(OAuth2User principal, UserDto.PatchDto dto);
+    String patchImage(OAuth2User principal, MultipartFile file);
+    byte[] getImage(String fileName);
     boolean deleteUser(OAuth2User principal);
 }

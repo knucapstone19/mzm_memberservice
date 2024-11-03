@@ -4,10 +4,13 @@ import com.matzipmap.mzm_memberservice.data.dto.UserDto;
 import com.matzipmap.mzm_memberservice.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.InputStream;
 
 @RestController
 @Slf4j
@@ -35,6 +38,20 @@ public class UserController {
         return ResponseEntity.ok(b); // TODO:
     }
 
+    @PostMapping("/profile-image")
+    public ResponseEntity<Object> patchImage(
+            @AuthenticationPrincipal OAuth2User principal,
+            @RequestBody MultipartFile file) {
+        return ResponseEntity.ok(userService.patchImage(principal, file));
+    }
+
+    @GetMapping("/profile-image")
+    public ResponseEntity<byte[]> getProfileImage(@RequestParam String path) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setCacheControl(CacheControl.noCache().getHeaderValue());
+        headers.setContentType(MediaType.IMAGE_PNG);
+        return new ResponseEntity<>(userService.getImage(path), headers, HttpStatus.OK);
+    }
     @DeleteMapping
     public ResponseEntity<Object> deleteUser(@AuthenticationPrincipal OAuth2User principal) {
         userService.deleteUser(principal);
