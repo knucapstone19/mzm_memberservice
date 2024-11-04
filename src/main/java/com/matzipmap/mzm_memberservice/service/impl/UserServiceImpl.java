@@ -80,7 +80,7 @@ public class UserServiceImpl extends DefaultOAuth2UserService implements UserSer
                     .email(oAuth2UserInfo.email())
                     .socialType(socialType)
                     .socialCode(socialCode)
-                    .username(oAuth2UserInfo.name())
+                    .username(null)
                     .build();
             User savedUser = userRepository.save(user);
             log.info("SavedUserId: {}", savedUser.getUserId());
