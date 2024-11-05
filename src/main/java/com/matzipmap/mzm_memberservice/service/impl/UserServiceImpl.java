@@ -110,13 +110,6 @@ public class UserServiceImpl extends DefaultOAuth2UserService implements UserSer
         return userRepository.getUserByEmail(email);
     }
 
-    @Override
-    public User getUserBySocialTypeAndSocialCode(SocialType socialType, String socialCode) {
-        User user = getUserBySocialTypeAndSocialCode(socialType, socialCode);
-//        PrincipalDetails details = new PrincipalDetails(user, null, null);
-        return user;
-    }
-
     /**
      * 닉네임으로 유저 정보를 가져옵니다.
      * @param username 사용자 닉네임
