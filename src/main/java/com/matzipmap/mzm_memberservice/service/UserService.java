@@ -9,7 +9,6 @@ import org.springframework.web.multipart.MultipartFile;
 public interface UserService {
     User getUserById(Long userId);
     User getUserByEmail(String email);
-    User getUserBySocialTypeAndSocialCode(SocialType socialType, String socialCode);
 
     /**
      * 사용자 이름이 이미 사용되고있는지 검사합니다.
